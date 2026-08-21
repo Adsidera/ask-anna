@@ -1,2 +1,20 @@
 #!/usr/bin/env ruby
-exec "./bin/rails", "server", *ARGV
+# Runs Puma and Sidekiq together for local development (Sidekiq needs
+# Redis running -- see README). Ctrl+C stops both; if either exits on its
+# own, the other is stopped too rather than left running as an orphan.
+
+pids = [
+  Process.spawn("./bin/rails", "server", *ARGV),
+  Process.spawn("bundle", "exec", "sidekiq", "-e", ENV["RAILS_ENV"] || "development")
+]
+
+def stop(pids)
+  pids.each { |pid| Process.kill("TERM", pid) rescue nil }
+end
+
+trap("INT") { stop(pids); exit }
+trap("TERM") { stop(pids); exit }
+
+exited_pid, = Process.waitpid2(-1)
+stop(pids - [ exited_pid ])
+pids.each { |pid| Process.waitpid(pid) rescue nil }

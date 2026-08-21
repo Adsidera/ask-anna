@@ -1,0 +1,51 @@
+<main class="min-h-screen bg-gray-50 px-4 py-10">
+  <div class="mx-auto w-full max-w-3xl">
+    <%= render "admin/nav" %>
+
+    <div class="mb-6 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900"><%= @document.title %></h1>
+        <p class="mt-1 text-sm text-gray-500">
+          <span class="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+            <%= @document.source_type.humanize %>
+          </span>
+          <% if @document.published_at %>
+            · published <%= @document.published_at.to_fs(:long) %>
+          <% end %>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <%= link_to "Edit", edit_admin_document_path(@document),
+              class: "rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50" %>
+        <%= button_to "Delete", admin_document_path(@document), method: :delete,
+              form: { onsubmit: "return confirm('Delete this document and its chunks? This cannot be undone.')" },
+              class: "cursor-pointer rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50" %>
+      </div>
+    </div>
+
+    <div class="mb-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <h2 class="mb-2 text-sm font-semibold text-gray-900">Raw content</h2>
+      <p class="max-h-64 overflow-y-auto whitespace-pre-wrap font-mono text-xs text-gray-700"><%= @document.raw_content %></p>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+      <h2 class="mb-2 text-sm font-semibold text-gray-900">
+        <% if @document.chunks.any? %>
+          <%= pluralize(@document.chunks.size, "chunk") %>
+        <% else %>
+          Chunks <span class="font-normal text-amber-600">(pending ingestion — is Sidekiq running?)</span>
+        <% end %>
+      </h2>
+
+      <ul class="divide-y divide-gray-100">
+        <% @document.chunks.order(:position).each do |chunk| %>
+          <li class="py-2">
+            <p class="text-xs font-medium text-gray-500">#<%= chunk.position %></p>
+            <p class="mt-0.5 whitespace-pre-wrap text-sm text-gray-700"><%= truncate(chunk.content, length: 300) %></p>
+          </li>
+        <% end %>
+      </ul>
+    </div>
+  </div>
+</main>

@@ -13,4 +13,9 @@ Rails.application.routes.draw do
   root "pages#home"
 
   post "ask", to: "ask#create"
+
+  namespace :admin do
+    root "documents#index"
+    resources :documents
+  end
 end

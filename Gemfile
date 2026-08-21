@@ -38,6 +38,9 @@ gem "rack-cors"
 # Strip HTML when ingesting documents from a URL
 gem "nokogiri"
 
+# Extract text from uploaded PDFs when ingesting documents
+gem "pdf-reader"
+
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
 

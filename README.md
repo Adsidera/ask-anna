@@ -21,11 +21,17 @@ Claude Code").
 ## Local setup
 
 Requirements: PostgreSQL with the `vector` extension available, Redis,
-[Ollama](https://ollama.com), Node (only to build the widget).
+[Ollama](https://ollama.com), Node (only to build the widget). On macOS:
+
+```
+brew install redis && brew services start redis   # Sidekiq needs this running
+brew install ollama
+```
 
 ```
 bundle install
 cp .env.example .env        # adjust if needed; defaults assume Ollama locally
+             # also set ADMIN_USERNAME/ADMIN_PASSWORD in .env to use /admin
 ollama pull qwen3:0.6b
 ollama pull nomic-embed-text
 bin/rails db:create db:migrate
@@ -53,7 +59,15 @@ curl -X POST localhost:3000/ask \
 
 ### Ingest a document
 
-Fase 1 is admin-only, no UI — via the Rails console:
+Fase 1 is admin-only (spec). Two ways in:
+
+**Admin panel** at `/admin` (HTTP Basic Auth — set `ADMIN_USERNAME`/
+`ADMIN_PASSWORD` in `.env`, unset means the panel 503s rather than opening
+with a guessable default). Create a document by pasting text, giving a
+source URL (fetched + HTML-stripped), or uploading a PDF (text-extracted) —
+whichever one you fill in wins, in that priority order.
+
+**Rails console**, for scripting/seeding:
 
 ```ruby
 # pasted text
@@ -63,8 +77,8 @@ Document.create!(title: "CV", source_type: "cv", raw_content: "...")
 Document.ingest_from_url!(url: "https://...", title: "Blog post", source_type: "blog_post")
 ```
 
-Updating `raw_content` on an existing `Document` automatically invalidates
-and re-creates its chunks (`app/models/document.rb`).
+Either way, updating `raw_content` on an existing `Document` automatically
+invalidates and re-creates its chunks (`app/models/document.rb`).
 
 ## Widget (Fase 3)
 
