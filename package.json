@@ -1,0 +1,12 @@
+{
+  "name": "ask-anna-widget",
+  "private": true,
+  "description": "Build for the embeddable Ask Anna popup widget (spec Fase 3)",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.0"
+  }
+}
