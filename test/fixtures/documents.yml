@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+cv:
+  title: "CV — Anna Costalonga"
+  source_type: cv
+  source_url:
+  raw_content: "Anna is a Ruby on Rails backend engineer with experience in PostgreSQL and Sidekiq."
+  published_at: 2026-01-01
+
+blog_post:
+  title: "Why I built Ask Anna"
+  source_type: blog_post
+  source_url: "https://example.com/blog/ask-anna"
+  raw_content: "A post about building a RAG assistant grounded in public content."
+  published_at: 2026-06-01

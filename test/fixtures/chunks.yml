@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+cv_chunk_one:
+  document: cv
+  content: "Anna is a Ruby on Rails backend engineer with experience in PostgreSQL and Sidekiq."
+  position: 0
+
+blog_post_chunk_one:
+  document: blog_post
+  content: "A post about building a RAG assistant. See https://example.com/blog/ask-anna for details."
+  position: 1
