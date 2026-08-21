@@ -22,6 +22,12 @@ module AI
       else
         raise Error, "Unknown generation provider: #{@provider.inspect}"
       end
+    rescue Faraday::Error => e
+      # Covers connection-level failures (refused, timed out, DNS, ...) that
+      # happen before there's an HTTP response to check .success? on -- e.g.
+      # Ollama not running locally. Wrapped so callers only need to handle
+      # AI::GenerationClient::Error, not know about Faraday internals.
+      raise Error, "#{@provider} generation request failed: #{e.message}"
     end
 
     private

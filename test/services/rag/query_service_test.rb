@@ -53,18 +53,21 @@ module Rag
       assert_equal [ "https://example.com/a", "https://example.com/b" ], result.sources
     end
 
-    test "returns no sources when no chunks are retrieved" do
-      fake_embedding_client = FakeEmbeddingClient.new { |_text| unit_vector(0) }
-      fake_generation_client = FakeGenerationClient.new { |_prompt| "I don't have information about this." }
+    test "returns a canned no-info answer without contacting the embedding or generation model when the knowledge base is empty" do
+      # Fixture chunks exist but (like any not-yet-ingested chunk) have no
+      # embedding, so nearest_neighbors would never surface them either.
+      assert_not Chunk.where.not(embedding: nil).exists?
+
+      raise_if_called = ->(*) { raise "should not be called when the knowledge base is empty" }
 
       result = nil
-      AI::EmbeddingClient.stub(:new, fake_embedding_client) do
-        AI::GenerationClient.stub(:new, fake_generation_client) do
+      AI::EmbeddingClient.stub(:new, raise_if_called) do
+        AI::GenerationClient.stub(:new, raise_if_called) do
           result = Rag::QueryService.call("Anything at all?")
         end
       end
 
-      assert_equal "I don't have information about this.", result.answer
+      assert_equal Rag::QueryService::NO_CONTEXT_ANSWER, result.answer
       assert_empty result.sources
     end
 

@@ -1,0 +1,10 @@
+/* Embeddable widget stylesheet (app/frontend/widget.ts). Compiled to
+ * public/widget.css via `npm run build` — don't hand-edit the output.
+ *
+ * Deliberately skips tailwindcss/preflight.css: this stylesheet gets
+ * loaded on arbitrary third-party host pages, and Tailwind's reset is
+ * global (html, body, headings, ...) — importing it here would restyle
+ * the *host* page, not just the widget.
+ */
+@import "tailwindcss/theme.css";
+@import "tailwindcss/utilities.css";

@@ -9,5 +9,5 @@
     "rootDir": "app/frontend",
     "noEmitOnError": true
   },
-  "include": [ "app/frontend/widget.ts" ]
+  "include": [ "app/frontend/*.ts" ]
 }

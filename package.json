@@ -1,12 +1,18 @@
 {
   "name": "ask-anna-widget",
   "private": true,
-  "description": "Build for the embeddable Ask Anna popup widget (spec Fase 3)",
+  "description": "Frontend build: homepage + embeddable widget (TypeScript, Tailwind CSS)",
   "scripts": {
-    "build": "tsc",
+    "build": "npm run build:ts && npm run build:css",
+    "build:ts": "tsc",
+    "build:css": "npm run build:css:app && npm run build:css:widget",
+    "build:css:app": "tailwindcss -i app/frontend/styles/application.css -o public/application.css --minify",
+    "build:css:widget": "tailwindcss -i app/frontend/styles/widget.css -o public/widget.css --minify",
     "watch": "tsc --watch"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.9.0"
   }
 }

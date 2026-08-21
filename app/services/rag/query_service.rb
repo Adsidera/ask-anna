@@ -5,11 +5,14 @@ module Rag
   class QueryService
     RETRIEVAL_LIMIT = 5
     RELEVANCE_DISTANCE_THRESHOLD = ENV.fetch("RETRIEVAL_DISTANCE_THRESHOLD", 0.4).to_f
+    NO_CONTEXT_ANSWER = "Sorry, I don't have information about this yet."
 
     SYSTEM_PROMPT = <<~PROMPT.strip
-      Sei un assistente che risponde a domande sull'esperienza professionale di Anna,
-      basandoti SOLO sul contesto fornito qui sotto. Se l'informazione non è presente
-      nel contesto, rispondi che non hai informazioni su questo, senza inventare.
+      You are an assistant that answers questions about Anna's professional
+      experience, based ONLY on the context provided below. Always answer in
+      English, regardless of the language the question was asked in. If the
+      information isn't present in the context, say that you don't have
+      information about this, without making anything up.
     PROMPT
 
     Result = Struct.new(:answer, :sources, keyword_init: true)
@@ -23,6 +26,15 @@ module Rag
     end
 
     def call
+      # Skip embedding/generation entirely when no chunk has an embedding yet
+      # (nothing has been ingested) -- there's nothing to ground an answer
+      # in, and a 0.6B model can't be trusted to reliably say "I don't know"
+      # on its own instead of hallucinating, so don't even give it the
+      # chance to try. Mirrors what nearest_neighbors itself would find:
+      # it filters out null embeddings, so this is exactly the condition
+      # under which retrieval would come back empty anyway.
+      return empty_knowledge_base_result unless Chunk.where.not(embedding: nil).exists?
+
       total_start = now
 
       question_vector, embedding_ms = timed { AI::EmbeddingClient.new.embed(@question) }
@@ -48,6 +60,14 @@ module Rag
 
     private
 
+    def empty_knowledge_base_result
+      Rails.logger.info(
+        { event: "ask_query", question: @question, retrieved_chunk_ids: [], low_relevance: true, skipped: "empty_knowledge_base" }.to_json
+      )
+
+      Result.new(answer: NO_CONTEXT_ANSWER, sources: [])
+    end
+
     def retrieve(question_vector)
       Chunk.nearest_neighbors(:embedding, question_vector, distance: "cosine")
         .includes(:document)
@@ -61,10 +81,10 @@ module Rag
       <<~PROMPT
         #{SYSTEM_PROMPT}
 
-        Contesto:
+        Context:
         #{context}
 
-        Domanda: #{@question}
+        Question: #{@question}
       PROMPT
     end
 

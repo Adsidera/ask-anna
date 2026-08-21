@@ -27,6 +27,12 @@ module AI
       else
         raise Error, "Unknown embedding provider: #{@provider.inspect}"
       end
+    rescue Faraday::Error => e
+      # Covers connection-level failures (refused, timed out, DNS, ...) that
+      # happen before there's an HTTP response to check .success? on -- e.g.
+      # Ollama not running locally. Wrapped so callers only need to handle
+      # AI::EmbeddingClient::Error, not know about Faraday internals.
+      raise Error, "#{@provider} embedding request failed: #{e.message}"
     end
 
     private
