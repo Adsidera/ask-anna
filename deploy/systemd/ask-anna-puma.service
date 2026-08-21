@@ -1,0 +1,26 @@
+# Template systemd unit for the Rails app server (Puma), per spec "Deploy (VPS Hetzner)".
+#
+# Install:
+#   sudo cp deploy/systemd/ask-anna-puma.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now ask-anna-puma
+#
+# Adjust User/WorkingDirectory/paths to match how the app is deployed
+# (e.g. Capistrano-style /var/www/ask-anna/current, or a plain clone).
+
+[Unit]
+Description=Ask Anna - Puma (Rails app server)
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=ask-anna
+WorkingDirectory=/var/www/ask-anna/current
+Environment=RAILS_ENV=production
+EnvironmentFile=/var/www/ask-anna/shared/.env
+ExecStart=/var/www/ask-anna/current/bin/rails server -e production
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
