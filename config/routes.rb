@@ -13,9 +13,11 @@ Rails.application.routes.draw do
   root "pages#home"
 
   post "ask", to: "ask#create"
+  get "suggested_questions", to: "suggested_questions#index"
 
   namespace :admin do
     root "documents#index"
     resources :documents
+    resources :suggested_questions
   end
 end

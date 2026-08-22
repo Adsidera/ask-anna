@@ -80,6 +80,20 @@ Document.ingest_from_url!(url: "https://...", title: "Blog post", source_type: "
 Either way, updating `raw_content` on an existing `Document` automatically
 invalidates and re-creates its chunks (`app/models/document.rb`).
 
+### Suggested questions
+
+The small local generation model is unreliable at synthesizing answers to
+the questions people ask most (see `Rag::QueryService`). `SuggestedQuestion`
+records (managed at `/admin/suggested_questions`, seeded with the top 5 in
+`db/seeds.rb`) hold a hand-curated answer per question; when an incoming
+question's embedding is close enough (cosine distance below
+`SUGGESTED_QUESTION_MATCH_DISTANCE_THRESHOLD`, default `0.32`, calibrated
+against live `nomic-embed-text` distances -- see the comment on that
+constant) to one of them, that answer is returned directly and the
+generation model is never called. They're also shown as clickable chips on
+the homepage and widget. `GET /suggested_questions` exposes the question
+text (not answers) for the widget to fetch.
+
 ## Widget (Fase 3)
 
 Source: `app/frontend/widget.ts`. Rebuild after editing:

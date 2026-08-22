@@ -27,6 +27,10 @@ interface AskErrorResponse {
   error: string;
 }
 
+interface SuggestedQuestionsResponse {
+  questions: string[];
+}
+
 (function () {
   "use strict";
 
@@ -34,6 +38,7 @@ interface AskErrorResponse {
   const apiBase = currentScript?.dataset.apiBase ?? "";
   const title = currentScript?.dataset.title ?? "Ask Anna";
   const askUrl = apiBase.replace(/\/$/, "") + "/ask";
+  const suggestedQuestionsUrl = apiBase.replace(/\/$/, "") + "/suggested_questions";
   const cssUrl = currentScript ? new URL("widget.css", currentScript.src).href : "widget.css";
 
   type ElementAttrs = Record<string, string> & { text?: string };
@@ -119,6 +124,14 @@ interface AskErrorResponse {
     return body as AskResponse;
   }
 
+  async function fetchSuggestedQuestions(): Promise<string[]> {
+    const response = await fetch(suggestedQuestionsUrl, { headers: { Accept: "application/json" } });
+    if (!response.ok) return [];
+
+    const body = (await response.json()) as SuggestedQuestionsResponse;
+    return body.questions ?? [];
+  }
+
   function init(): void {
     document.head.appendChild(el("link", { rel: "stylesheet", href: cssUrl }));
 
@@ -151,6 +164,7 @@ interface AskErrorResponse {
       text: "Send"
     });
     const form = el("form", { class: "flex gap-1.5 border-t border-gray-200 p-2.5" }, [ input, submit ]);
+    const suggestions = el("div", { class: "flex flex-wrap gap-1.5 border-t border-gray-200 px-2.5 py-2" });
 
     const closeBtn = el("button", {
       type: "button",
@@ -171,7 +185,7 @@ interface AskErrorResponse {
         class:
           "fixed right-5 bottom-[88px] hidden h-[460px] max-h-[calc(100vh-120px)] w-[340px] max-w-[calc(100vw-40px)] flex-col overflow-hidden rounded-xl bg-white shadow-2xl shadow-black/25"
       },
-      [ header, log, form ]
+      [ header, log, suggestions, form ]
     );
 
     root.appendChild(toggle);
@@ -188,16 +202,7 @@ interface AskErrorResponse {
       panel.classList.remove("flex");
     });
 
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && !event.shiftKey) {
-        event.preventDefault();
-        form.requestSubmit();
-      }
-    });
-
-    form.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const question = input.value.trim();
+    function submitQuestion(question: string): void {
       if (!question || submit.disabled) return;
 
       appendQuestion(log, question);
@@ -217,7 +222,33 @@ interface AskErrorResponse {
         .finally(() => {
           submit.disabled = false;
         });
+    }
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
     });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      submitQuestion(input.value.trim());
+    });
+
+    fetchSuggestedQuestions().then((questions) => {
+      questions.forEach((question) => {
+        const chip = el("button", {
+          type: "button",
+          class: "rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-100",
+          text: question
+        });
+        chip.addEventListener("click", () => submitQuestion(question));
+        suggestions.appendChild(chip);
+      });
+
+      if (questions.length === 0) suggestions.remove();
+    }).catch(() => suggestions.remove());
   }
 
   if (document.readyState === "loading") {

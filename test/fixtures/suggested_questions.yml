@@ -1,0 +1,12 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+most_exciting_project:
+  question: "What's the most exciting project you've worked on?"
+  answer: "Placeholder answer for tests."
+  source_url: "https://example.com/project"
+  active: true
+
+inactive_one:
+  question: "An inactive suggested question"
+  answer: "Should never be matched or shown."
+  active: false

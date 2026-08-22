@@ -67,4 +67,61 @@ project = Document.find_or_create_by!(title: "Project: Ask Anna", source_type: "
   TEXT
 end
 
-puts "Seeded #{Document.count} documents, #{Chunk.count} chunks."
+
+# Top 5 questions developers/recruiters tend to ask, with hand-curated
+# answers so they don't depend on the small local model synthesizing a
+# coherent answer from raw chunks every time (see Rag::QueryService).
+suggested_questions = [
+  {
+    question: "What's the most exciting project you've worked on?",
+    answer: <<~TEXT.strip
+      The most exciting project I've worked on is Xikolo, the Rails-based platform powering openHPI and openWHO —
+      the World Health Organization's e-learning portal. It's built as a service-oriented architecture using
+      domain-driven design: separate services per bounded context (account, course, pinboard, lti, notification,
+      and more) rather than strict microservices. Getting to make real architecture decisions on a system serving
+      WHO's global health education was genuinely one of the most rewarding parts of my career so far.
+    TEXT
+  },
+  {
+    question: "What's your tech stack?",
+    answer: <<~TEXT.strip
+      My core stack is Ruby on Rails, with RabbitMQ for pub-sub messaging between services, Redis and Sidekiq
+      (previously also DelayedJob) for async job processing, advanced PostgreSQL, and AWS for infrastructure.
+      Lately I've also been building personal AI/RAG projects — this app included — with Rails 8, pgvector,
+      FastAPI, LangChain, and Groq/Ollama for local and API-based LLM inference.
+    TEXT
+  },
+  {
+    question: "How many years of experience do you have?",
+    answer: <<~TEXT.strip
+      I have about 8 years of backend development experience. I transitioned into software engineering in 2016
+      through the CareerFoundry bootcamp, worked as a freelancer, took a pause during COVID, and then spent
+      2021–2024 as a senior backend developer at HPI working on Xikolo.
+    TEXT
+  },
+  {
+    question: "Are you open to new opportunities right now?",
+    answer: <<~TEXT.strip
+      Yes — I'm currently between roles and actively job searching. I'm open to Rails/backend developer
+      positions, SRE/application maintenance roles, and technical support roles, and I'm looking across several
+      European markets: Germany, France, Spain, Italy.
+    TEXT
+  },
+  {
+    question: "What kind of role or work do you enjoy most?",
+    answer: <<~TEXT.strip
+      I'm most drawn to backend Rails roles with a strong architecture and design component — service-oriented
+      systems, domain-driven design, that kind of thing. I'm also increasingly interested in work that blends
+      backend engineering with AI/ML, which is part of why I've been building projects like this one.
+    TEXT
+  }
+]
+
+suggested_questions.each do |attrs|
+  SuggestedQuestion.find_or_create_by!(question: attrs[:question]) do |suggested_question|
+    suggested_question.answer = attrs[:answer]
+    suggested_question.active = true
+  end
+end
+
+puts "Seeded #{Document.count} documents, #{Chunk.count} chunks, #{SuggestedQuestion.count} suggested questions."

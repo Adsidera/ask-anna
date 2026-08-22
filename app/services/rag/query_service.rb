@@ -7,12 +7,22 @@ module Rag
     RELEVANCE_DISTANCE_THRESHOLD = ENV.fetch("RETRIEVAL_DISTANCE_THRESHOLD", 0.4).to_f
     NO_CONTEXT_ANSWER = "Sorry, I don't have information about this yet."
 
+    # Calibrated against live nomic-embed-text cosine distances (5 seeded
+    # suggested_questions): close paraphrases of a suggested question
+    # landed at 0.06-0.30, genuinely unrelated questions at 0.51+, with a
+    # 0.36-0.40 gray zone (broad/ambiguous questions, e.g. "tell me about
+    # your career") deliberately left unmatched -- better to fall through
+    # to RAG (or say "I don't know") than force a narrow answer onto a
+    # broad question. Re-check this if the suggested question set or the
+    # embedding model changes.
+    SUGGESTED_QUESTION_MATCH_DISTANCE_THRESHOLD = ENV.fetch("SUGGESTED_QUESTION_MATCH_DISTANCE_THRESHOLD", 0.32).to_f
+
     SYSTEM_PROMPT = <<~PROMPT.strip
       You are an assistant that answers questions about Anna's professional
       experience, based ONLY on the context provided below. Always answer in
-      English, regardless of the language the question was asked in. If the
+      English, regardless of the language the question was asked in. Always use the first person, as if Anna in person was speaking. If the
       information isn't present in the context, say that you don't have
-      information about this, without making anything up.
+      information about this, without making anything up. Use a friendly and professional tone.
     PROMPT
 
     Result = Struct.new(:answer, :sources, keyword_init: true)
@@ -26,18 +36,28 @@ module Rag
     end
 
     def call
-      # Skip embedding/generation entirely when no chunk has an embedding yet
-      # (nothing has been ingested) -- there's nothing to ground an answer
-      # in, and a 0.6B model can't be trusted to reliably say "I don't know"
-      # on its own instead of hallucinating, so don't even give it the
-      # chance to try. Mirrors what nearest_neighbors itself would find:
-      # it filters out null embeddings, so this is exactly the condition
-      # under which retrieval would come back empty anyway.
-      return empty_knowledge_base_result unless Chunk.where.not(embedding: nil).exists?
+      chunks_available = Chunk.where.not(embedding: nil).exists?
+      suggested_questions_available = SuggestedQuestion.active.where.not(embedding: nil).exists?
+
+      # Skip embedding/generation entirely when there's nothing to work
+      # with at all -- no chunk, no suggested question. A 0.6B model can't
+      # be trusted to reliably say "I don't know" on its own instead of
+      # hallucinating, so don't even give it the chance to try.
+      return empty_knowledge_base_result unless chunks_available || suggested_questions_available
 
       total_start = now
-
       question_vector, embedding_ms = timed { AI::EmbeddingClient.new.embed(@question) }
+
+      if suggested_questions_available
+        match, match_ms = timed { match_suggested_question(question_vector) }
+        if match
+          log_suggested_question_match(match, embedding_ms: embedding_ms, match_ms: match_ms, total_ms: elapsed_ms(total_start))
+          return Result.new(answer: match.answer, sources: Array(match.source_url))
+        end
+      end
+
+      return empty_knowledge_base_result unless chunks_available
+
       chunks, retrieval_ms = timed { retrieve(question_vector) }
       raw_answer, generation_ms = timed { AI::GenerationClient.new.generate(build_prompt(chunks)) }
       grounded, grounding_ms = timed { GroundingChecker.call(answer: raw_answer, context_chunks: chunks.map(&:content)) }
@@ -60,12 +80,30 @@ module Rag
 
     private
 
+    def match_suggested_question(question_vector)
+      SuggestedQuestion.active
+        .nearest_neighbors(:embedding, question_vector, distance: "cosine", threshold: SUGGESTED_QUESTION_MATCH_DISTANCE_THRESHOLD)
+        .first
+    end
+
     def empty_knowledge_base_result
       Rails.logger.info(
         { event: "ask_query", question: @question, retrieved_chunk_ids: [], low_relevance: true, skipped: "empty_knowledge_base" }.to_json
       )
 
       Result.new(answer: NO_CONTEXT_ANSWER, sources: [])
+    end
+
+    def log_suggested_question_match(match, **timings)
+      Rails.logger.info(
+        {
+          event: "ask_query",
+          question: @question,
+          suggested_question_match_id: match.id,
+          suggested_question_match_question: match.question,
+          suggested_question_match_distance: match.neighbor_distance
+        }.merge(timings).to_json
+      )
     end
 
     def retrieve(question_vector)

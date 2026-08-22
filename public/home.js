@@ -63,15 +63,7 @@
         }
         return body;
     }
-    input.addEventListener("keydown", (event) => {
-        if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            form.requestSubmit();
-        }
-    });
-    form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const question = input.value.trim();
+    function submitQuestion(question) {
         if (!question || submit.disabled)
             return;
         appendQuestion(question);
@@ -89,6 +81,21 @@
         })
             .finally(() => {
             submit.disabled = false;
+        });
+    }
+    input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            form.requestSubmit();
+        }
+    });
+    form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        submitQuestion(input.value.trim());
+    });
+    document.querySelectorAll("[data-suggested-question]").forEach((button) => {
+        button.addEventListener("click", () => {
+            submitQuestion(button.dataset.suggestedQuestion ?? "");
         });
     });
 })();
