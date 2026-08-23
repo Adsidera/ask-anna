@@ -1,13 +1,13 @@
-<main class="min-h-screen bg-gray-50 px-4 py-10">
+<main class="min-h-screen bg-slate-50 px-4 py-10">
   <div class="mx-auto w-full max-w-3xl">
     <%= render "admin/nav" %>
 
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900"><%= @suggested_question.question %></h1>
-        <p class="mt-1 text-sm text-gray-500">
+        <h1 class="text-2xl font-bold text-slate-900"><%= @suggested_question.question %></h1>
+        <p class="mt-1 text-sm text-slate-500">
           <% if !@suggested_question.active? %>
-            <span class="inline-block rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">inactive</span>
+            <span class="inline-block rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">inactive</span>
           <% elsif @suggested_question.embedding.present? %>
             <span class="inline-block rounded-full bg-green-50 px-2 py-0.5 text-xs text-green-700">ready</span>
           <% else %>
@@ -20,16 +20,16 @@
 
       <div class="flex items-center gap-3">
         <%= link_to "Edit", edit_admin_suggested_question_path(@suggested_question),
-              class: "rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50" %>
+              class: "rounded-lg border border-indigo-300 px-4 py-2 text-sm font-medium text-indigo-700 hover:bg-indigo-50" %>
         <%= button_to "Delete", admin_suggested_question_path(@suggested_question), method: :delete,
               form: { onsubmit: "return confirm('Delete this suggested question?')" },
               class: "cursor-pointer rounded-lg border border-red-200 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50" %>
       </div>
     </div>
 
-    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-      <h2 class="mb-2 text-sm font-semibold text-gray-900">Answer</h2>
-      <p class="whitespace-pre-wrap text-sm text-gray-700"><%= @suggested_question.answer %></p>
+    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <h2 class="mb-2 text-sm font-semibold text-slate-900">Answer</h2>
+      <p class="whitespace-pre-wrap text-sm text-slate-700"><%= @suggested_question.answer %></p>
 
     </div>
   </div>

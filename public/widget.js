@@ -43,11 +43,11 @@
         return node;
     }
     function appendQuestion(log, question) {
-        log.appendChild(el("p", { class: "max-w-[85%] self-end rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white", text: question }));
+        log.appendChild(el("p", { class: "max-w-[85%] self-end rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white", text: question }));
         log.scrollTop = log.scrollHeight;
     }
     function appendAnswer(log, text, sources) {
-        const wrapper = el("div", { class: "max-w-[85%] self-start rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-700" });
+        const wrapper = el("div", { class: "max-w-[85%] self-start rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-950" });
         wrapper.appendChild(el("p", { text }));
         if (sources.length > 0) {
             const sourcesEl = el("div", { class: "mt-1.5 flex flex-col gap-0.5" });
@@ -56,7 +56,7 @@
                     href: url,
                     target: "_blank",
                     rel: "noopener noreferrer",
-                    class: "break-all text-xs text-blue-600 hover:underline",
+                    class: "break-all text-xs text-indigo-600 hover:underline",
                     text: url
                 }));
             });
@@ -71,7 +71,7 @@
     }
     function appendSpinner(log) {
         const bubble = el("p", {
-            class: "max-w-[85%] self-start rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-500 animate-pulse",
+            class: "max-w-[85%] self-start rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-400 animate-pulse",
             text: "Thinking…"
         });
         log.appendChild(bubble);
@@ -103,34 +103,34 @@
         const toggle = el("button", {
             type: "button",
             "aria-label": title,
-            class: "flex h-14 w-14 items-center justify-center rounded-full border-none bg-gray-900 text-xl text-white shadow-lg shadow-black/25 hover:bg-gray-700",
+            class: "flex h-14 w-14 items-center justify-center rounded-full border-none bg-indigo-600 text-xl text-white shadow-lg shadow-black/25 hover:bg-indigo-700",
             text: "?"
         });
-        const log = el("div", { class: "flex flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 text-sm text-gray-900" }, [
+        const log = el("div", { class: "flex flex-1 flex-col gap-2.5 overflow-y-auto p-3.5 text-sm text-slate-900" }, [
             el("p", {
-                class: "max-w-[85%] self-start rounded-lg bg-gray-100 px-3 py-2 text-gray-700",
+                class: "max-w-[85%] self-start rounded-lg bg-indigo-50 px-3 py-2 text-indigo-950",
                 text: "Ask me anything about Anna's professional experience."
             })
         ]);
         const input = el("textarea", {
             placeholder: "Ask a question...",
             rows: "1",
-            class: "h-10 flex-1 resize-none rounded-lg border border-gray-300 p-2 font-sans text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-800"
+            class: "h-10 flex-1 resize-none rounded-lg border border-slate-300 p-2 font-sans text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         });
         const submit = el("button", {
             type: "submit",
-            class: "rounded-lg border-none bg-gray-900 px-3.5 text-sm text-white hover:bg-gray-700 disabled:cursor-default disabled:opacity-50",
+            class: "rounded-lg border-none bg-indigo-600 px-3.5 text-sm text-white hover:bg-indigo-700 disabled:cursor-default disabled:opacity-50",
             text: "Send"
         });
-        const form = el("form", { class: "flex gap-1.5 border-t border-gray-200 p-2.5" }, [input, submit]);
-        const suggestions = el("div", { class: "flex flex-wrap gap-1.5 border-t border-gray-200 px-2.5 py-2" });
+        const form = el("form", { class: "flex gap-1.5 border-t border-slate-200 p-2.5" }, [input, submit]);
+        const suggestions = el("div", { class: "flex flex-wrap gap-1.5 border-t border-slate-200 px-2.5 py-2" });
         const closeBtn = el("button", {
             type: "button",
             "aria-label": "Close",
             class: "border-none bg-transparent text-lg leading-none text-white",
             text: "✕"
         });
-        const header = el("div", { class: "flex items-center justify-between bg-gray-900 px-4 py-3.5 font-semibold text-white" }, [el("span", { text: title }), closeBtn]);
+        const header = el("div", { class: "flex items-center justify-between bg-indigo-600 px-4 py-3.5 font-semibold text-white" }, [el("span", { text: title }), closeBtn]);
         const panel = el("div", {
             id: "ask-anna-panel",
             class: "fixed right-5 bottom-[88px] hidden h-[460px] max-h-[calc(100vh-120px)] w-[340px] max-w-[calc(100vw-40px)] flex-col overflow-hidden rounded-xl bg-white shadow-2xl shadow-black/25"
@@ -182,7 +182,7 @@
             questions.forEach((question) => {
                 const chip = el("button", {
                     type: "button",
-                    class: "rounded-full border border-gray-300 bg-white px-2.5 py-1 text-xs text-gray-700 hover:bg-gray-100",
+                    class: "rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs text-amber-800 hover:bg-amber-100",
                     text: question
                 });
                 chip.addEventListener("click", () => submitQuestion(question));

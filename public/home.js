@@ -21,16 +21,16 @@
         return node;
     }
     function appendQuestion(question) {
-        log.appendChild(el("p", "max-w-[85%] self-end rounded-lg bg-gray-900 px-3 py-2 text-sm text-white", question));
+        log.appendChild(el("p", "max-w-[85%] self-end rounded-lg bg-indigo-600 px-3 py-2 text-sm text-white", question));
         log.scrollTop = log.scrollHeight;
     }
     function appendAnswer(text, sources) {
-        const wrapper = el("div", "max-w-[85%] self-start rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-700");
+        const wrapper = el("div", "max-w-[85%] self-start rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-950");
         wrapper.appendChild(el("p", "", text));
         if (sources.length > 0) {
             const sourcesEl = el("div", "mt-1.5 flex flex-col gap-0.5");
             sources.forEach((url) => {
-                const link = el("a", "break-all text-xs text-blue-600 hover:underline", url);
+                const link = el("a", "break-all text-xs text-indigo-600 hover:underline", url);
                 link.setAttribute("href", url);
                 link.setAttribute("target", "_blank");
                 link.setAttribute("rel", "noopener noreferrer");
@@ -46,7 +46,7 @@
         log.scrollTop = log.scrollHeight;
     }
     function appendSpinner() {
-        const bubble = el("p", "max-w-[85%] self-start rounded-lg bg-gray-100 px-3 py-2 text-sm text-gray-500 animate-pulse", "Thinking…");
+        const bubble = el("p", "max-w-[85%] self-start rounded-lg bg-indigo-50 px-3 py-2 text-sm text-indigo-400 animate-pulse", "Thinking…");
         log.appendChild(bubble);
         log.scrollTop = log.scrollHeight;
         return bubble;
