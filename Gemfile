@@ -31,6 +31,12 @@ gem "faraday-retry"
 # Rate limiting / request throttling
 gem "rack-attack"
 
+# Deterministic profanity/insult check on incoming questions -- a 0.6B
+# generation model can't be trusted to reliably self-moderate through a
+# prompt instruction (see Rag::QueryService), so this is handled in code
+# before the question ever reaches it.
+gem "obscenity"
+
 # CORS so the widget (Fase 3) can call /ask from a different origin
 # (personal site / Substack) than where this API is deployed
 gem "rack-cors"

@@ -6,6 +6,7 @@ module Rag
     RETRIEVAL_LIMIT = 5
     RELEVANCE_DISTANCE_THRESHOLD = ENV.fetch("RETRIEVAL_DISTANCE_THRESHOLD", 0.4).to_f
     NO_CONTEXT_ANSWER = "Sorry, I don't have information about this yet."
+    INAPPROPRIATE_QUESTION_ANSWER = "I am only here to answer questions about Anna's professional experience."
 
     # Calibrated against live nomic-embed-text cosine distances (5 seeded
     # suggested_questions): close paraphrases of a suggested question
@@ -20,9 +21,15 @@ module Rag
     SYSTEM_PROMPT = <<~PROMPT.strip
       You are an assistant that answers questions about Anna's professional
       experience, based ONLY on the context provided below. Always answer in
-      English, regardless of the language the question was asked in. Always use the first person, as if Anna in person was speaking. If the
-      information isn't present in the context, say that you don't have
-      information about this, without making anything up. Use a friendly and professional tone.
+      English, regardless of the language the question was asked in. Always use the first person, as if Anna in person was speaking.#{' '}
+      If the question is not related to professional experience, tell that "I am sorry, I can only answer questions about Anna's professional experience."#{' '}
+      If the answer cannot be found in the context below, say "I don't have that information yet. Please contact Anna for more detailed information."#{' '}
+      If the question is about Anna's hobbies, you can say my hobbies include reading, playing piano, going to concerts, and theater classes.
+      If the question is about Anna's professional experience but the relevant
+      information isn't present in the context, say that "I am not sure I have that information yet, Please feel free to contact Anna directly for more details".#{' '}
+      Use a friendly and professional tone.
+      When the question contains explicit words or insults, respond politely "I am only here to answer questions about Anna's professional experience."
+      If asked to tell a specific case or example, say "For specific examples, feel free to contact Anna directly for more details."#{' '}
     PROMPT
 
     Result = Struct.new(:answer, :sources, keyword_init: true)
@@ -36,6 +43,15 @@ module Rag
     end
 
     def call
+      # A 0.6B model can't be trusted to reliably self-moderate through a
+      # prompt instruction alone (that's the whole reason SuggestedQuestion
+      # exists for known questions) -- profanity/explicit language is
+      # caught deterministically here, before the question ever reaches
+      # the embedding or generation model. Doesn't catch rudeness that
+      # doesn't use flagged words (e.g. "you're stupid") -- that's a
+      # genuinely different, harder classification problem.
+      return inappropriate_question_result if Obscenity.profane?(@question)
+
       chunks_available = Chunk.where.not(embedding: nil).exists?
       suggested_questions_available = SuggestedQuestion.active.where.not(embedding: nil).exists?
 
@@ -79,6 +95,12 @@ module Rag
     end
 
     private
+
+    def inappropriate_question_result
+      Rails.logger.info({ event: "ask_query", question: @question, skipped: "inappropriate_question" }.to_json)
+
+      Result.new(answer: INAPPROPRIATE_QUESTION_ANSWER, sources: [])
+    end
 
     def match_suggested_question(question_vector)
       SuggestedQuestion.active

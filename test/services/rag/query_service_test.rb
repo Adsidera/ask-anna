@@ -132,6 +132,24 @@ module Rag
       assert_equal suggested_question.answer, result.answer
     end
 
+    test "deflects a profane question without contacting the embedding or generation model" do
+      raise_if_called = ->(*) { raise "should not be called for a profane question" }
+
+      result = nil
+      AI::EmbeddingClient.stub(:new, raise_if_called) do
+        AI::GenerationClient.stub(:new, raise_if_called) do
+          result = Rag::QueryService.call("fuck you")
+        end
+      end
+
+      assert_equal Rag::QueryService::INAPPROPRIATE_QUESTION_ANSWER, result.answer
+      assert_empty result.sources
+    end
+
+    test "a clean question is not treated as profane" do
+      assert_not Obscenity.profane?("What's your tech stack?")
+    end
+
     private
 
     def unit_vector(index)
