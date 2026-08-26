@@ -1,0 +1,84 @@
+# Production-shaped compose file for a single VPS: Postgres+pgvector, Redis,
+# Ollama (embeddings -- see EMBEDDING_PROVIDER in .env.example; generation
+# can point at a remote API instead, e.g. GENERATION_PROVIDER=groq), and the
+# Rails app split into a web (Puma via Thruster) and worker (Sidekiq)
+# container built from the same image. Not used for local dev -- see
+# README.md's "Local setup" for that.
+#
+# Usage: copy .env.example to .env, fill it in plus RAILS_MASTER_KEY and
+# ASK_ANNA_DATABASE_PASSWORD (see deploy/README.md), then:
+#   docker compose up -d --build
+#   docker compose exec ollama ollama pull nomic-embed-text
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_USER: ask_anna
+      POSTGRES_PASSWORD: ${ASK_ANNA_DATABASE_PASSWORD:?set ASK_ANNA_DATABASE_PASSWORD in .env}
+      POSTGRES_DB: ask_anna_production
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ask_anna" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # Only needed while EMBEDDING_PROVIDER=ollama and/or GENERATION_PROVIDER=ollama
+  # in .env. Models persist in the ollamadata volume across restarts -- pull
+  # them once after the first `docker compose up` (see usage note above).
+  ollama:
+    image: ollama/ollama:latest
+    volumes:
+      - ollamadata:/root/.ollama
+    restart: unless-stopped
+
+  web:
+    build: .
+    command: [ "./bin/thrust", "./bin/rails", "server" ]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://ask_anna:${ASK_ANNA_DATABASE_PASSWORD}@db:5432/ask_anna_production
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_URL: http://ollama:11434
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  worker:
+    build: .
+    command: [ "bundle", "exec", "sidekiq" ]
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://ask_anna:${ASK_ANNA_DATABASE_PASSWORD}@db:5432/ask_anna_production
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_URL: http://ollama:11434
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  ollamadata:

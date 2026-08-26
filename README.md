@@ -125,6 +125,7 @@ required to run the suite.
 
 ## Deploy
 
-See [deploy/README.md](deploy/README.md) and the systemd unit templates
-under `deploy/systemd/` for the Hetzner VPS + Cloudflare Tunnel setup
-described in the spec.
+See [deploy/README.md](deploy/README.md) for the Hetzner VPS + Cloudflare
+Tunnel setup described in the spec — via Docker (`Dockerfile` +
+`compose.yaml`) or, alternatively, the systemd unit templates under
+`deploy/systemd/`.

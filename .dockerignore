@@ -1,0 +1,17 @@
+.git/
+.gitignore
+.env
+.env.*
+!.env.example
+log/*
+tmp/*
+!log/.keep
+!tmp/.keep
+node_modules/
+storage/*
+!storage/.keep
+db/*.sqlite3
+public/assets
+.dockerignore
+Dockerfile
+compose.yaml

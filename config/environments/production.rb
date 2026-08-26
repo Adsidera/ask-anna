@@ -21,11 +21,14 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Assume all access to the app is happening through a SSL-terminating reverse proxy.
-  config.assume_ssl = true
+  # Assume all access to the app is happening through a SSL-terminating reverse proxy
+  # (true in real deployment, behind the Cloudflare Tunnel -- see deploy/README.md).
+  # Set ASSUME_SSL=false/FORCE_SSL=false in .env only when testing the production
+  # build locally over plain http (e.g. `docker compose up` without the tunnel).
+  config.assume_ssl = ENV["ASSUME_SSL"] != "false"
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  config.force_ssl = ENV["FORCE_SSL"] != "false"
 
   # Skip http-to-https redirect for the default health check endpoint.
   # config.ssl_options = { redirect: { exclude: ->(request) { request.path == "/up" } } }

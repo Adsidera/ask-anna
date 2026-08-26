@@ -1,0 +1,15 @@
+#!/bin/bash -e
+
+if [ -z "${LD_PRELOAD+x}" ]; then
+    LD_PRELOAD=$(find /usr/lib -name libjemalloc.so.2 -print -quit)
+    export LD_PRELOAD
+fi
+
+# Only the web command (thrust wrapping the Rails server) prepares the
+# database; the sidekiq worker command shares this entrypoint but shouldn't
+# race it on every container start.
+if [ "${1}" == "./bin/thrust" ]; then
+  ./bin/rails db:prepare
+fi
+
+exec "${@}"
