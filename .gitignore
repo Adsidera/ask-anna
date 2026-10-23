@@ -33,3 +33,6 @@
 
 # macOS Finder metadata.
 .DS_Store
+
+# Real seed content (personal details); see db/seeds/content.example.yml.
+/db/seeds/content.yml

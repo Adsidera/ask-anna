@@ -1,0 +1,35 @@
+# Placeholder seed content, used by db/seeds.rb when db/seeds/content.yml
+# (gitignored, holds the real texts) doesn't exist. Copy this file to
+# content.yml and replace the texts to seed your own content.
+
+documents:
+  - title: "CV"
+    source_type: cv
+    source_url:
+    published_at: 2026-01-01
+    raw_content: |
+      [PLACEHOLDER] A short professional summary: role, years of experience,
+      main projects and technical skills.
+
+  - title: "Project: Ask Anna"
+    source_type: project
+    source_url: https://github.com/Adsidera/ask-anna
+    published_at: 2026-08-01
+    raw_content: |
+      Ask Anna is a conversational RAG assistant built with Ruby on Rails 8,
+      PostgreSQL with the pgvector extension for vector search, Sidekiq for
+      asynchronous document ingestion, and Ollama with Qwen3 0.6B as the
+      self-hosted generation model.
+
+      The flow: documents are split into chunks, each chunk is turned into an
+      embedding and stored; user questions are compared via cosine similarity
+      against the most relevant chunks, which become the context for the
+      generation model. A grounding-check step strips any URL in the answer
+      that doesn't literally appear in the retrieved context.
+
+suggested_questions:
+  - question: "What's your tech stack?"
+    answer: "[PLACEHOLDER] A hand-written answer shown when this question is asked."
+
+  - question: "Are you open to new opportunities right now?"
+    answer: "[PLACEHOLDER] A hand-written answer shown when this question is asked."
