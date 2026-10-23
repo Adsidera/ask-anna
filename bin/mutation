@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+# Runs mutation testing (mutineer) over the app's logic -- services, models
+# and jobs -- against the whole non-system test suite. Coverage guidance
+# means each mutant only runs the tests that actually reach its line.
+#
+#   bin/mutation                                   # everything
+#   bin/mutation app/services/text_chunker.rb      # just some sources
+#   bin/mutation --format html --output tmp/mutation.html
+#
+# Extra mutineer flags are passed through; config lives in .mutineer.yml.
+# Runs serially: mutineer's parallel --daemon backend only supports SQLite.
+Dir.chdir(File.expand_path("..", __dir__))
+
+sources, flags = ARGV.partition { |arg| arg.end_with?(".rb") && File.file?(arg) }
+if sources.empty?
+  sources = Dir["app/{services,models,jobs}/**/*.rb"].reject { |path| File.basename(path).start_with?("application_") }
+end
+tests = Dir["test/**/*_test.rb"].reject { |path| path.start_with?("test/system/") }
+
+ENV["RAILS_ENV"] = "test"
+exec "bundle", "exec", "mutineer", "run", *sources.sort, *tests.sort.flat_map { |test| [ "--test", test ] }, *flags

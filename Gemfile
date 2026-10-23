@@ -81,4 +81,7 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # Mutation testing: mutates app code and checks the suite catches it [https://github.com/davidteren/mutineer]
+  gem "mutineer", require: false
 end

@@ -132,6 +132,31 @@ module Rag
       assert_equal suggested_question.answer, result.answer
     end
 
+    test "returns the no-info answer without generating when no suggested question matches and there are no chunks" do
+      SuggestedQuestion.create!(question: "Unrelated question", answer: "Unrelated answer", embedding: unit_vector(5))
+
+      fake_embedding_client = FakeEmbeddingClient.new { |_text| unit_vector(0) }
+      generation_should_not_be_called = ->(*) { raise "generation model should not be called without chunks" }
+
+      result = nil
+      AI::EmbeddingClient.stub(:new, fake_embedding_client) do
+        AI::GenerationClient.stub(:new, generation_should_not_be_called) do
+          result = Rag::QueryService.call("What did Anna build?")
+        end
+      end
+
+      assert_equal Rag::QueryService::NO_CONTEXT_ANSWER, result.answer
+      assert_empty result.sources
+    end
+
+    test "logs low_relevance only when even the nearest chunk is beyond the distance threshold" do
+      document = Document.create!(title: "A", source_type: "project", raw_content: "content")
+      document.chunks.create!(content: "Anna built project A.", position: 0, embedding: unit_vector(0))
+
+      assert_not logged_query_for(unit_vector(0))["low_relevance"], "an exact match is relevant"
+      assert logged_query_for(unit_vector(1))["low_relevance"], "an orthogonal chunk (distance 1.0) is not"
+    end
+
     test "deflects a profane question without contacting the embedding or generation model" do
       raise_if_called = ->(*) { raise "should not be called for a profane question" }
 
@@ -151,6 +176,24 @@ module Rag
     end
 
     private
+
+    # Runs a query whose question embeds to question_vector and returns the
+    # parsed "ask_query" log line it writes.
+    def logged_query_for(question_vector)
+      logged = []
+      fake_embedding_client = FakeEmbeddingClient.new { |_text| question_vector }
+      fake_generation_client = FakeGenerationClient.new { |_prompt| "Generated answer." }
+
+      AI::EmbeddingClient.stub(:new, fake_embedding_client) do
+        AI::GenerationClient.stub(:new, fake_generation_client) do
+          Rails.logger.stub(:info, ->(message) { logged << message }) do
+            Rag::QueryService.call("What did Anna build?")
+          end
+        end
+      end
+
+      logged.map { |message| JSON.parse(message) }.find { |entry| entry["event"] == "ask_query" }
+    end
 
     def unit_vector(index)
       Array.new(@dimensions, 0.0).tap { |vector| vector[index] = 1.0 }

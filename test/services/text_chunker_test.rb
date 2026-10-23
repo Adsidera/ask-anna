@@ -38,6 +38,14 @@ class TextChunkerTest < ActiveSupport::TestCase
     assert_equal [ "1 2 3 4", "4 5 6 7", "7 8 9 10" ], chunks
   end
 
+  test "flushes the buffered paragraphs before window-splitting a long paragraph" do
+    text = "intro\n\n" + (1..10).map(&:to_s).join(" ")
+
+    chunks = TextChunker.call(text, max_words: 4, overlap_words: 1)
+
+    assert_equal [ "intro", "1 2 3 4", "4 5 6 7", "7 8 9 10" ], chunks
+  end
+
   test "ignores blank paragraphs instead of producing an empty chunk" do
     text = "one\n\n\n\ntwo"
 

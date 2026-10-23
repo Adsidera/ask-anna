@@ -19,9 +19,13 @@ class DocumentIngestionJobTest < ActiveSupport::TestCase
     fake_embedding = Array.new(dimensions, 0.1)
     fake_client = FakeEmbeddingClient.new { |_text| fake_embedding }
 
+    logged_errors = []
     AI::EmbeddingClient.stub(:new, fake_client) do
-      DocumentIngestionJob.perform_now(document.id)
+      Rails.logger.stub(:error, ->(message) { logged_errors << message }) do
+        DocumentIngestionJob.perform_now(document.id)
+      end
     end
+    assert_empty logged_errors, "a fully embedded document should not log a failure"
 
     expected_texts = TextChunker.call(document.raw_content)
     chunks = document.chunks.order(:position)

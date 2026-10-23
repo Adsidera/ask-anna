@@ -1,0 +1,2 @@
+# Mutation testing config, see bin/mutation and https://github.com/davidteren/mutineer
+rails: true

@@ -36,3 +36,6 @@
 
 # Real seed content (personal details); see db/seeds/content.example.yml.
 /db/seeds/content.yml
+
+# Mutineer coverage cache.
+/.mutineer/
