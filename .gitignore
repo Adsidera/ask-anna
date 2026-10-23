@@ -30,3 +30,6 @@
 # Node deps for building the widget (app/frontend/widget.ts -> public/widget.js).
 /node_modules
 
+
+# macOS Finder metadata.
+.DS_Store
