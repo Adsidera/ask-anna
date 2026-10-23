@@ -82,6 +82,9 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 
+  # Stubs HTTP at the Net::HTTP level, so the AI clients and HtmlFetcher are tested through their real Faraday stack
+  gem "webmock"
+
   # Mutation testing: mutates app code and checks the suite catches it [https://github.com/davidteren/mutineer]
   gem "mutineer", require: false
 end
