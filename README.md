@@ -122,3 +122,18 @@ bin/brakeman
 
 AI calls (embedding/generation) are stubbed in tests — no Ollama/Redis
 required to run the suite.
+
+### Mutation testing
+
+The suite is checked with mutation testing via
+[Mutineer](https://github.com/davidteren/mutineer): it makes small changes
+to the app code (flipping a comparison, removing a line, ...) and reruns the
+tests against each one. A change that no test catches marks a gap. Unlike
+line coverage, this shows whether the tests actually check the behavior or
+just run the code. Running it here uncovered a real bug (the Groq/OpenAI
+clients called the wrong URLs) and led to stronger tests.
+
+```
+bin/mutation                                # services, models and jobs
+bin/mutation app/services/text_chunker.rb   # a single file
+```
