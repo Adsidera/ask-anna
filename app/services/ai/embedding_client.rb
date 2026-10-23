@@ -50,7 +50,9 @@ module AI
     end
 
     def embed_via_openai_compatible(text)
-      response = openai_compatible_connection.post("/embeddings") do |req|
+      # Relative path: a leading "/" would make Faraday drop the base URL's
+      # "/v1" (or "/openai/v1") path.
+      response = openai_compatible_connection.post("embeddings") do |req|
         req.body = { model: @model, input: text }
       end
       unless response.success?

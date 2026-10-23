@@ -45,7 +45,9 @@ module AI
     end
 
     def generate_via_groq(prompt)
-      response = groq_connection.post("/chat/completions") do |req|
+      # Relative path: a leading "/" would make Faraday drop the base URL's
+      # "/openai/v1" path and hit https://api.groq.com/chat/completions.
+      response = groq_connection.post("chat/completions") do |req|
         req.body = {
           model: @model,
           messages: [ { role: "user", content: prompt } ]
