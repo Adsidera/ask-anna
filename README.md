@@ -122,10 +122,3 @@ bin/brakeman
 
 AI calls (embedding/generation) are stubbed in tests — no Ollama/Redis
 required to run the suite.
-
-## Deploy
-
-See [deploy/README.md](deploy/README.md) for the Hetzner VPS + Cloudflare
-Tunnel setup described in the spec — via Docker (`Dockerfile` +
-`compose.yaml`) or, alternatively, the systemd unit templates under
-`deploy/systemd/`.
